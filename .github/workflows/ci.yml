@@ -19,7 +19,7 @@ jobs:
   pytest:
     runs-on: ubuntu-latest
     env:
-      DATABASE_URL: "postgres://postgres:rishika@localhost:5432/cloud"
+      DATABASE_URL: "postgresql://postgres:rishika@localhost:5432/cloud"
 
     steps:
 
