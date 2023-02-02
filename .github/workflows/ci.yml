@@ -18,8 +18,17 @@ concurrency:
 jobs:
   pytest:
     runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:14
+        ports:
+          - 5432:5432
+        env:
+          POSTGRES_PASSWORD: postgres
+
     env:
-      DATABASE_URL: "postgresql://postgres:rishika@localhost:5432/cloud"
+      # postgres://user:password@host:port/database
+      DATABASE_URL: "postgres://postgres:postgres@localhost:5432/postgres"
 
     steps:
 
