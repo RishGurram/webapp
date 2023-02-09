@@ -3,65 +3,88 @@ import json
 import base64
 
 # Framework Imports
-from fastapi import FastAPI, Depends, Header
+from fastapi import FastAPI, Depends, Header, HTTPException, Request
 from fastapi import status
+from fastapi.exceptions import RequestValidationError
 from passlib.context import CryptContext
 from sqlalchemy.orm import Session
+from fastapi.responses import JSONResponse
 
 # Project Imports
 import models
-from database import get_db
-from schema import User, LoginSerializer
+from database import get_db, engine
+from schema import User, LoginSerializer, Product, CustomException
 from utils import response
+
+models.Base.metadata.create_all(bind=engine)
 
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
 app = FastAPI()
 
+@app.exception_handler(RequestValidationError)
+async def validation_exception_handler(request: Request, exc: RequestValidationError):
+    dct = {}
+    for error in exc.errors():
+        dct[error["loc"][1]] = error["msg"]
+
+    return JSONResponse(
+        status_code=status.HTTP_400_BAD_REQUEST,
+        content=dct,
+    )
+
+@app.exception_handler(CustomException)
+async def handle_custom_exception(request, exc: CustomException):
+    return JSONResponse(
+        status_code=exc.status_code, content=exc.msg
+    )
+
 
 @app.post("/v1/user")
 def create_user(user: User, db: Session = Depends(get_db)):
     try:
-        existing_user = db.query(models.User).filter_by(email=user.email).first()
+        existing_user = db.query(models.User).filter_by(username=user.username).first()
         if existing_user:
-            return response(False, "User with this email already exists", status.HTTP_400_BAD_REQUEST)
+            return response(False, "User with this username already exists", status.HTTP_400_BAD_REQUEST)
 
-        new_user = models.User(email=user.email,
+        new_user = models.User(username=user.username,
                                first_name=user.first_name,
                                last_name=user.last_name,
-                               password=pwd_context.encrypt(user.password))
+                               password=pwd_context.encrypt(user.password)
+                               )
 
         db.add(new_user)
         db.commit()
         return_data = json.loads(
-            json.dumps(db.query(models.User).filter_by(email=user.email).first().to_dict(),
+            json.dumps(db.query(models.User).filter_by(username=user.username).first().to_dict(),
                        indent=4, sort_keys=True, default=str))
         return response(True, "User Created Successfully", status.HTTP_201_CREATED, return_data)
     except Exception as e:
         return response(False, str(e), status.HTTP_408_REQUEST_TIMEOUT)
 
 
+
 def authenticate_user(user: LoginSerializer, db: Session = Depends(get_db)):
     try:
-        if not user.email or not user.password:
-            return response(False, "Email and password are required", status.HTTP_400_BAD_REQUEST)
+        if not user.username or not user.password:
+            return response(False, "Username and password are required", status.HTTP_400_BAD_REQUEST)
 
-        stored_user = db.query(models.User).filter_by(email=user.email).first()
+        stored_user = db.query(models.User).filter_by(username=user.username).first()
         if not stored_user:
-            return response(False, "Incorrect email or password", status.HTTP_401_UNAUTHORIZED)
+            return response(False, "Incorrect username or password", status.HTTP_401_UNAUTHORIZED)
 
         if not pwd_context.verify(user.password, stored_user.password):
-            return response(False, "Incorrect email or password", status.HTTP_401_UNAUTHORIZED)
+            return response(False, "Incorrect username or password", status.HTTP_401_UNAUTHORIZED)
 
         # generate token
         token = base64.b64encode(
-            f'{user.email}:{user.password}'.encode()).decode()
+            f'{user.username}:{user.password}'.encode()).decode()
 
         # return response with token and user data
         return response(True, "Login Successful", status.HTTP_200_OK, data={
             "first_name": stored_user.first_name,
             "last_name": stored_user.last_name,
-            "email": stored_user.email
+            "username": stored_user.username
         }, headers={
             "access-token": token
         })
@@ -90,14 +113,16 @@ async def get_user(user_id: int, authorization: str = Header(None), db: Session 
                 return response(False, "Authorization type not supported", status.HTTP_400_BAD_REQUEST)
 
             code = base64.b64decode(encoded_code).decode("utf-8")
-            email, password = code.split(":")
+            username, password = code.split(":")
+
+            # Check if user is authorized to access this data
+            if user.username != username:
+                return response(False, "Not authorized to access other user's data", status.HTTP_403_FORBIDDEN)
 
             if not pwd_context.verify(password, user.password):
                 return response(False, "Invalid authorization", status.HTTP_401_UNAUTHORIZED)
 
-            # Check if user is authorized to access this data
-            if user.email != email:
-                return response(False, "Not authorized to access other user's data", status.HTTP_403_FORBIDDEN)
+            
 
             return response(True, "User data fetched successfully",
                             status.HTTP_200_OK, data=json.loads(json.dumps(user.to_dict(),
@@ -109,7 +134,7 @@ async def get_user(user_id: int, authorization: str = Header(None), db: Session 
         return response(False, str(e), status.HTTP_408_REQUEST_TIMEOUT)
 
 
-@app.put("/v1/user/{user_id}")
+@app.put("/v1/user/{user_id}", response_class=JSONResponse)
 async def update_user(user_id: int, data: dict, authorization: str = Header(None), db: Session = Depends(get_db)):
     try:
         # Check if user exists
@@ -125,14 +150,14 @@ async def update_user(user_id: int, data: dict, authorization: str = Header(None
                 return response(False, "Authorization type not supported", status.HTTP_400_BAD_REQUEST)
 
             code = base64.b64decode(encoded_code).decode("utf-8")
-            email, password = code.split(":")
+            username, password = code.split(":")
+
+            # Check if user is authorized to access this data
+            if user.username != username:
+                return response(False, "Not authorized to access other user's data", status.HTTP_403_FORBIDDEN)
 
             if not pwd_context.verify(password, user.password):
                 return response(False, "Invalid authorization", status.HTTP_401_UNAUTHORIZED)
-
-            # Check if user is authorized to access this data
-            if user.email != email:
-                return response(False, "Not authorized to access other user's data", status.HTTP_403_FORBIDDEN)
 
             # Update user data
             user.first_name = data.get("first_name", user.first_name)
@@ -143,9 +168,9 @@ async def update_user(user_id: int, data: dict, authorization: str = Header(None
             db.commit()
             db.refresh(user)
 
-            return response(True, "User data Updated successfully",
-                            status.HTTP_200_OK, data=json.loads(json.dumps(user.to_dict(),
-                                                                           indent=4, sort_keys=True, default=str)))
+            return response(True, "User Updated successfully", status.HTTP_204_NO_CONTENT)
+
+            
         except Exception as e:
             return response(False, "Invalid authorization header : {}".format(str(e)), status.HTTP_400_BAD_REQUEST)
 
@@ -153,6 +178,228 @@ async def update_user(user_id: int, data: dict, authorization: str = Header(None
         return response(False, str(e), status.HTTP_408_REQUEST_TIMEOUT)
 
 
+
 @app.get("/healthz/")
 async def health_check():
     return response(True, "Health check successful", status.HTTP_200_OK)
+
+
+
+@app.post("/v1/product")
+def create_product(product: Product, authorization: str = Header(None),  db: Session = Depends(get_db)):
+    try:
+
+        if product.quantity < 0 or product.quantity > 100:
+            return response(False, "Product quantity should be a positive integer", status.HTTP_400_BAD_REQUEST)
+
+        existing_product = db.query(models.Product).filter_by(sku=product.sku).first()
+        if existing_product:
+            return response(False, "Product with this SKU already exists", status.HTTP_400_BAD_REQUEST)
+
+        if authorization is None:
+            return response(False, "Authorization header missing", status.HTTP_400_BAD_REQUEST)
+
+        auth_type, encoded_code = authorization.split(" ")
+        if auth_type != "Basic":
+                return response(False, "Authorization type not supported", status.HTTP_400_BAD_REQUEST)
+
+        code = base64.b64decode(encoded_code).decode("utf-8")
+
+        username, password = code.split(":")
+
+        user = db.query(models.User).filter_by(username=username).first()
+        if not user:
+            return response(False, "User not found", status.HTTP_404_NOT_FOUND)
+
+        existing_product = db.query(models.Product).filter_by(sku=product.sku).first()
+        if existing_product:
+            return response(False, "Product with this SKU already exists", status.HTTP_400_BAD_REQUEST)
+
+
+        new_product = models.Product(
+            sku=product.sku,
+            name=product.name,
+            description=product.description,
+            manufacturer=product.manufacturer,
+            quantity=product.quantity,
+            owner_user_id=user.id
+        )
+
+        db.add(new_product)
+        db.commit()
+        return_data = json.loads(
+            json.dumps(db.query(models.Product).filter_by(sku=product.sku).first().to_dict(),
+                       indent=4, sort_keys=True, default=str))
+        return response(True, "Product Created Successfully", status.HTTP_201_CREATED, return_data)
+    except Exception as e:
+        return response(False, str(e), status.HTTP_408_REQUEST_TIMEOUT)
+
+
+
+@app.put("/v1/product/{product_id}")
+async def update_product(product_id: int, data: Product, authorization: str = Header(None), db: Session = Depends(get_db)):
+    try:
+
+        
+        # Check if product exists
+        product = db.query(models.Product).filter_by(id=product_id).first()
+        if not product:
+            return response(False, "Product not found", status.HTTP_404_NOT_FOUND)
+
+        if authorization is None:
+            return response(False, "Authorization header missing", status.HTTP_400_BAD_REQUEST)
+        try:
+            auth_type, encoded_code = authorization.split(" ")
+            if auth_type != "Basic":
+                return response(False, "Authorization type not supported", status.HTTP_400_BAD_REQUEST)
+
+            code = base64.b64decode(encoded_code).decode("utf-8")
+            username, password = code.split(":")
+
+            user = db.query(models.User).filter_by(username=username).first()
+            if not user:
+                return response(False, "User not found", status.HTTP_404_NOT_FOUND)
+            
+             # Check if user is authorized to access this data
+            if product.owner_user_id != user.id:
+                return response(False, "Not authorized to access other user's data", status.HTTP_403_FORBIDDEN)
+
+            if not pwd_context.verify(password, user.password):
+                return response(False, "Invalid authorization", status.HTTP_401_UNAUTHORIZED)
+
+            if data.sku != product.sku:
+                existing_product = db.query(models.Product).filter_by(sku=data.sku).first()
+                if existing_product:
+                    return response(False, "Product with this SKU already exists", status.HTTP_400_BAD_REQUEST)
+
+           
+
+            # Update product data
+            product.name = data.name
+            product.description = data.description
+            product.sku = data.sku
+            product.manufacturer = data.manufacturer
+            product.quantity = data.quantity
+
+            db.add(product)
+            db.commit()
+            db.refresh(product)
+
+            return response(True, "Product Updated successfully", status.HTTP_204_NO_CONTENT)
+
+            
+        except Exception as e:
+            return response(False, "Invalid authorization header : {}".format(str(e)), status.HTTP_400_BAD_REQUEST)
+
+    except Exception as e:
+        return response(False, str(e), status.HTTP_408_REQUEST_TIMEOUT)
+
+@app.patch("/v1/product/{product_id}")
+async def update_product(product_id: int, data: dict, authorization: str = Header(None), db: Session = Depends(get_db)):
+    try:
+
+        
+        # Check if product exists
+        product = db.query(models.Product).filter_by(id=product_id).first()
+        if not product:
+            return response(False, "Product not found", status.HTTP_404_NOT_FOUND)
+
+        if authorization is None:
+            return response(False, "Authorization header missing", status.HTTP_400_BAD_REQUEST)
+        try:
+            auth_type, encoded_code = authorization.split(" ")
+            if auth_type != "Basic":
+                return response(False, "Authorization type not supported", status.HTTP_400_BAD_REQUEST)
+
+            code = base64.b64decode(encoded_code).decode("utf-8")
+            username, password = code.split(":")
+
+            user = db.query(models.User).filter_by(username=username).first()
+            if not user:
+                return response(False, "User not found", status.HTTP_404_NOT_FOUND)
+            
+             # Check if user is authorized to access this data
+            if product.owner_user_id != user.id:
+                return response(False, "Not authorized to access other user's data", status.HTTP_403_FORBIDDEN)
+
+            if not pwd_context.verify(password, user.password):
+                return response(False, "Invalid authorization", status.HTTP_401_UNAUTHORIZED)
+
+            if data.get("sku", product.sku) != product.sku:
+                existing_product = db.query(models.Product).filter_by(sku=data['sku']).first()
+                if existing_product:
+                    return response(False, "Product with this SKU already exists", status.HTTP_400_BAD_REQUEST)
+
+            # Update product data
+            product.name = data.get("name", product.name)
+            product.description = data.get("description", product.description)
+            product.sku = data.get("sku", product.sku)
+            product.manufacturer = data.get("manufacturer", product.manufacturer)
+            product.quantity = data.get("quantity", product.quantity)
+
+            db.add(product)
+            db.commit()
+            db.refresh(product)
+
+            return response(True, "Product Updated successfully", status.HTTP_204_NO_CONTENT)
+
+            
+        except Exception as e:
+            return response(False, "Invalid authorization header : {}".format(str(e)), status.HTTP_400_BAD_REQUEST)
+
+    except Exception as e:
+        return response(False, str(e), status.HTTP_408_REQUEST_TIMEOUT)
+
+
+@app.delete("/v1/product/{product_id}")
+async def delete_product(product_id: int, authorization: str = Header(None), db: Session = Depends(get_db)):
+    try:
+        # Check if product exists
+        product = db.query(models.Product).filter_by(id=product_id).first()
+        if not product:
+            return response(False, "Product not found", status.HTTP_404_NOT_FOUND)
+
+        if authorization is None:
+            return response(False, "Authorization header missing", status.HTTP_400_BAD_REQUEST)
+        try:
+            auth_type, encoded_code = authorization.split(" ")
+            if auth_type != "Basic":
+                return response(False, "Authorization type not supported", status.HTTP_400_BAD_REQUEST)
+
+            code = base64.b64decode(encoded_code).decode("utf-8")
+            username, password = code.split(":")
+
+            user = db.query(models.User).filter_by(username=username).first()
+            if not user:
+                return response(False, "User not found", status.HTTP_404_NOT_FOUND)
+            
+            # Check if user is authorized to access this data
+            if product.owner_user_id != user.id:
+                return response(False, "Not authorized to access other user's data", status.HTTP_403_FORBIDDEN)
+
+
+            if not pwd_context.verify(password, user.password):
+                return response(False, "Invalid authorization", status.HTTP_401_UNAUTHORIZED)
+
+            
+            # Delete product
+            db.delete(product)
+            db.commit()
+
+            return response(True, "Product deleted successfully", status.HTTP_204_NO_CONTENT)
+
+        except Exception as e:
+            return response(False, "Invalid authorization header : {}".format(str(e)), status.HTTP_400_BAD_REQUEST)
+
+    except Exception as e:
+            return response(False, str(e), status.HTTP_408_REQUEST_TIMEOUT)
+
+@app.get("/v1/product/{product_id}")
+async def get_product(product_id: int, db: Session = Depends(get_db)):
+        product = db.query(models.Product).filter_by(id=product_id).first()
+        if not product:
+            return response(False, "Product not found", status.HTTP_404_NOT_FOUND)
+
+        return response(True, "Product data retrieved successfully", status.HTTP_200_OK,
+                            data=json.loads(json.dumps(product.to_dict(), indent=4, sort_keys=True, default=str)))
+  

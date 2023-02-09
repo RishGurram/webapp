@@ -1,5 +1,6 @@
 # Rest framework imports
-from fastapi.responses import JSONResponse
+from fastapi.responses import JSONResponse, Response
+from fastapi import status as st
 
 
 def response(status: bool, message: str, status_code: int, data=None, headers=None):
@@ -15,8 +16,12 @@ def response(status: bool, message: str, status_code: int, data=None, headers=No
     """
     if headers is None:
         headers = {}
-    return JSONResponse(content={
-        "status": "success" if status else "error",
-        "message": message,
-        "data": data if status else None
-    }, status_code=status_code, headers=headers, media_type="application/json")
+
+    
+    
+    message = message if type(message) in [dict, list] else {"message":message}
+
+    if status_code == st.HTTP_204_NO_CONTENT:
+        return Response(status_code=status_code, headers=headers, media_type="application/json")
+    return JSONResponse(content=data if data else message
+    , status_code=status_code, headers=headers, media_type="application/json")
