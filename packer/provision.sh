@@ -60,4 +60,3 @@ sudo systemctl enable nginx
 sudo cp packer/nginx.conf /etc/nginx/
 sudo systemctl restart nginx
 sudo systemctl reload nginx
-
