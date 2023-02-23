@@ -67,3 +67,4 @@ jobs:
     - name: Build Packer image
       run: packer build packer/packer.pkr.hcl
         )
+        
