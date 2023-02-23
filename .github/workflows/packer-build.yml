@@ -20,7 +20,7 @@ jobs:
 
     env:
       # postgres://user:password@host:port/database
-      DATABASE_URL: "postgres://postgres:postgres@localhost:5432/postgres"
+      DATABASE_URL: "postgresql://postgres:postgres@localhost:5432/postgres"
 
     steps:
 
@@ -65,5 +65,3 @@ jobs:
       run: packer init packer
     - name: Build Packer image
       run: packer build packer/packer.pkr.hcl
-        )
-
