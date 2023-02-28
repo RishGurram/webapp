@@ -77,8 +77,8 @@ build {
   ]
 
   provisioner "file" {
-    source      = "../webapp"
-    destination = "/home/ec2-user/webapp"
+    source      = "./"
+    destination = "/home/ec2-user"
   }
 
   provisioner "shell" {
