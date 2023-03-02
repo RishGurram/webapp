@@ -76,11 +76,11 @@ build {
     "source.amazon-ebs.webapp-ami"
   ]
 
+
   provisioner "file" {
     source      = "."
-    destination = "~/"
+    destination = "~"
   }
-
   provisioner "shell" {
     script = "packer/provision.sh"
   }
