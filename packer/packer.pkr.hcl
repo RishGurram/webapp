@@ -116,6 +116,18 @@ build {
     destination = "/home/ec2-user/"
   }
   provisioner "file" {
+    source      = "requirements.txt"
+    destination = "/home/ec2-user/"
+  }
+  provisioner "file" {
+    source      = "webapp.service"
+    destination = "/home/ec2-user/"
+  }
+  provisioner "file" {
+    source      = "nginx.conf"
+    destination = "/home/ec2-user/"
+  }
+  provisioner "file" {
     source      = "database.py"
     destination = "~"
   }

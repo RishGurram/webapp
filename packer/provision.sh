@@ -42,4 +42,6 @@ sudo make install
 
 # Install requirements
 cd /home/ec2-user
+
 pip3 install --upgrade pip
+
