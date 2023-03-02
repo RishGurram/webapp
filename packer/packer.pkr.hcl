@@ -115,54 +115,6 @@ build {
     source      = "nginx.conf"
     destination = "/home/ec2-user/"
   }
-  provisioner "file" {
-    source      = "requirements.txt"
-    destination = "/home/ec2-user/"
-  }
-  provisioner "file" {
-    source      = "webapp.service"
-    destination = "/home/ec2-user/"
-  }
-  provisioner "file" {
-    source      = "nginx.conf"
-    destination = "/home/ec2-user/"
-  }
-  provisioner "file" {
-    source      = "database.py"
-    destination = "~"
-  }
-  provisioner "file" {
-    source      = "main.py"
-    destination = "~"
-  }
-  provisioner "file" {
-    source      = "models.py"
-    destination = "~"
-  }
-  provisioner "file" {
-    source      = "schema.py"
-    destination = "~"
-  }
-  provisioner "file" {
-    source      = "test_main.py"
-    destination = "~"
-  }
-  provisioner "file" {
-    source      = "utils.py"
-    destination = "~"
-  }
-  provisioner "file" {
-    source      = "requirements.txt"
-    destination = "~"
-  }
-  provisioner "file" {
-    source      = "webapp.service"
-    destination = "~"
-  }
-  provisioner "file" {
-    source      = "nginx.conf"
-    destination = "~"
-  }
 
 
   provisioner "shell" {

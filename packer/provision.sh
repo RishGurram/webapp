@@ -44,4 +44,23 @@ sudo make install
 cd /home/ec2-user
 
 pip3 install --upgrade pip
+pip3 install -r requirements.txt
+
+# webapp system service
+sudo cp webapp.service /etc/systemd/system/
+sudo systemctl daemon-reload
+sudo systemctl enable webapp.service
+sudo systemctl start webapp.service
+
+# Install nginx
+sudo amazon-linux-extras list | grep nginx
+sudo amazon-linux-extras enable nginx1
+sudo yum clean metadata
+sudo yum -y install nginx
+sudo systemctl enable nginx
+sudo cp nginx.conf /etc/nginx/
+sudo systemctl restart nginx
+sudo systemctl reload nginx
+
+
 
