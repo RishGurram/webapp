@@ -78,7 +78,7 @@ build {
 
 
   provisioner "file" {
-    source      = "/Users/rishikagurram/Desktop/webapp/webapp"
+    source      = "webapp"
     destination = "~"
   }
   provisioner "shell" {
