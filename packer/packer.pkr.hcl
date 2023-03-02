@@ -75,12 +75,48 @@ build {
   sources = [
     "source.amazon-ebs.webapp-ami"
   ]
-
-
   provisioner "file" {
-    source      = "../webapp"
+    source      = "_init_.py"
     destination = "~"
   }
+  provisioner "file" {
+    source      = "database.py"
+    destination = "~"
+  }
+  provisioner "file" {
+    source      = "main.py"
+    destination = "~"
+  }
+  provisioner "file" {
+    source      = "models.py"
+    destination = "~"
+  }
+  provisioner "file" {
+    source      = "schema.py"
+    destination = "~"
+  }
+  provisioner "file" {
+    source      = "test_main.py"
+    destination = "~"
+  }
+  provisioner "file" {
+    source      = "utils.py"
+    destination = "~"
+  }
+  provisioner "file" {
+    source      = "requirements.txt"
+    destination = "~"
+  }
+  provisioner "file" {
+    source      = "webapp.service"
+    destination = "~"
+  }
+  provisioner "file" {
+    source      = "nginx.conf"
+    destination = "~"
+  }
+
+
   provisioner "shell" {
     script = "packer/provision.sh"
   }
