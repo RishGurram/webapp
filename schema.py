@@ -4,7 +4,6 @@ from utils import response
 from fastapi import status
 from fastapi.responses import JSONResponse
 
-
 class User(BaseModel):
     first_name: str
     last_name: str
@@ -42,3 +41,18 @@ class Product(BaseModel):
 
     class Config:
         orm_mode = True
+
+class Image(BaseModel):
+    image_id = int
+    product_id = int
+    file_name = str
+    s3_bucket_path = str
+   
+
+    class Config:
+        orm_mode = True
+    
+class CustomException(Exception):
+    def __init__(self, status_code, msg):
+        self.status_code = status_code
+        self.msg = msg
