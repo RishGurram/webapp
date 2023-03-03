@@ -5,8 +5,8 @@ After=network.target
 [Service]
 User=ec2-user
 
-WorkingDirectory=/home/ec2-user
-ExecStartPre=source venv/bin/activate
+WorkingDirectory=/home/ec2-user  
+ExecStartPre=source /webapp/venv/bin/activate
 ExecStart=/usr/bin/make runserver
 Restart=always
 
