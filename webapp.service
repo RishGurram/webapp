@@ -1,12 +1,11 @@
 [Unit]
-Description=My webpp
+Description=My webapp
 After=network.target
 
 [Service]
 User=ec2-user
-
 WorkingDirectory=/home/ec2-user  
-ExecStartPre=source /webapp/venv/bin/activate
+ExecStartPre=source webapp/venv/bin/activate
 ExecStart=/usr/bin/make runserver
 Restart=always
 
