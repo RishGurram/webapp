@@ -13,9 +13,6 @@ DATABASE_URL?= postgresql://$(POSTGRES_USER):$(POSTGRES_PASSWORD)@$(POSTGRES_HOS
 
 # =============================================================================
 
-runserver: 
-	~/.local/bin/uvicorn main:app --reload --workers 4 --host 0.0.0.0 --port 8001
-
 init:
 	packer init packer
 
