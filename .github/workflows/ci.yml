@@ -53,12 +53,6 @@ jobs:
         
   check_format:
     runs-on: ubuntu-latest
-    env:
-      PKR_VAR_POSTGRES_USER: ${{ secrets.POSTGRES_USER }}
-      PKR_VAR_POSTGRES_PASSWORD: ${{ secrets.POSTGRES_PASSWORD }}
-      PKR_VAR_POSTGRES_HOST: ${{ secrets.POSTGRES_HOST }}
-      PKR_VAR_POSTGRES_PORT: ${{ secrets.POSTGRES_PORT }}
-      PKR_VAR_POSTGRES_DB: ${{ secrets.POSTGRES_DB }}
     steps:
     - name: Checkout code
       uses: actions/checkout@v2

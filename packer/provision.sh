@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-sleep 30
+
 set -eo pipefail
 
 # system libraries
@@ -14,21 +14,8 @@ baseurl=http://download.postgresql.org/pub/repos/yum/14/redhat/rhel-7-x86_64
 enabled=1
 gpgcheck=0
 EOF
-#sudo yum makecache
-sudo yum install postgresql14 postgresql14-server postgresql-devel -y
-
-
-# Create postgres user
-sudo postgresql-14-setup initdb
-sudo systemctl enable --now postgresql-14
-sudo su - postgres <<EOF
-psql -c "CREATE database webapp"
-psql -c "CREATE USER webapp WITH PASSWORD 'webapp';"
-psql -c "GRANT ALL PRIVILEGES ON DATABASE webapp TO webapp;"
-psql -c "\du"
-EOF
-sudo sed -i 's/\(scram-sha-256\|ident\|peer\)/md5/g' /var/lib/pgsql/14/data/pg_hba.conf
-sudo systemctl restart postgresql-14
+sudo yum makecache
+sudo yum install postgresql14 -y
 
 
 # Install Python 3.9
@@ -41,13 +28,12 @@ sudo make install
 
 
 # Install requirements
-cd /home/ec2-user
-
+cd /home/ec2-user/webapp
 pip3 install --upgrade pip
 pip3 install -r requirements.txt
 
 # webapp system service
-sudo cp webapp.service /etc/systemd/system/
+sudo cp packer/webapp.service /etc/systemd/system/
 sudo systemctl daemon-reload
 sudo systemctl enable webapp.service
 sudo systemctl start webapp.service
@@ -58,9 +44,6 @@ sudo amazon-linux-extras enable nginx1
 sudo yum clean metadata
 sudo yum -y install nginx
 sudo systemctl enable nginx
-sudo cp nginx.conf /etc/nginx/
+sudo cp packer/nginx.conf /etc/nginx/
 sudo systemctl restart nginx
 sudo systemctl reload nginx
-
-
-

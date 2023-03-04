@@ -49,11 +49,6 @@ jobs:
     env:
       AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
       AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-      PKR_VAR_POSTGRES_USER: ${{ secrets.POSTGRES_USER }}
-      PKR_VAR_POSTGRES_PASSWORD: ${{ secrets.POSTGRES_PASSWORD }}
-      PKR_VAR_POSTGRES_HOST: ${{ secrets.POSTGRES_HOST }}
-      PKR_VAR_POSTGRES_PORT: ${{ secrets.POSTGRES_PORT }}
-      PKR_VAR_POSTGRES_DB: ${{ secrets.POSTGRES_DB }}
     if: github.event.pull_request.merged == true
     steps:
 

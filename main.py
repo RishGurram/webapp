@@ -28,6 +28,9 @@ pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
 app = FastAPI()
 
+S3_BUCKET_NAME = os.getenv('S3_BUCKET_NAME')
+USE_PROFILE = os.getenv('USE_PROFILE', False)
+
 @app.exception_handler(RequestValidationError)
 async def validation_exception_handler(request: Request, exc: RequestValidationError):
     dct = {}
@@ -409,9 +412,6 @@ async def get_product(product_id: int, db: Session = Depends(get_db)):
         return response(True, "Product data retrieved successfully", status.HTTP_200_OK,
                             data=json.loads(json.dumps(product.to_dict(), indent=4, sort_keys=True, default=str)))
 
-AWS_ACCESS_KEY_ID = {"AWS_ACCESS_KEY_ID"}
-AWS_SECRET_ACCESS_KEY = {"AWS_SECRET_ACCESS_KEY"}
-S3_BUCKET_NAME = {"YOURBUCKETNAME"}
 
 s3 = boto3.client('s3')
 #bucket = s3.Bucket(S3_BUCKET_NAME)
@@ -428,35 +428,37 @@ class CustomJSONEncoder(json.JSONEncoder):
 @app.get("/v1/product/{product_id}/image",response_class=JSONResponse)
 def get_images(product_id: int, authorization: str = Header(None), db: Session = Depends(get_db)):
     try:
-        # Check authorization header
+        
         if authorization is None:
-            raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Authorization header missing")
+            return response(status_code=status.HTTP_400_BAD_REQUEST, detail="Authorization header missing")
 
         auth_type, encoded_code = authorization.split(" ")
         if auth_type != "Basic":
-            raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Authorization type not supported")
+            return response(status_code=status.HTTP_400_BAD_REQUEST, detail="Authorization type not supported")
 
         code = base64.b64decode(encoded_code).decode("utf-8")
         username, password = code.split(":")
 
-        # Get user from database
+        
         user = db.query(models.User).filter_by(username=username).first()
         if not user:
-            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="User not found")
+            return response(status_code=status.HTTP_404_NOT_FOUND, detail="User not found")
 
-        # Get product from database
+        
         product = db.query(models.Product).filter_by(id=product_id).first()
         if not product:
-            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Product not found")
+            return response(status_code=status.HTTP_404_NOT_FOUND, detail="Product not found")
 
-        # Check if user is owner of the product
+       
         if product.owner_user_id != user.id:
-            raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="User is not authorized to access images for this product")
+                return response(False, "Not authorized to access other user's data", status.HTTP_403_FORBIDDEN)
 
-        # Get images for product from database
+        if not pwd_context.verify(password, user.password):
+                return response(False, "Invalid authorization", status.HTTP_401_UNAUTHORIZED)
+        
         images = db.query(models.Image).filter_by(product_id=product_id).all()
 
-        # Return list of image data
+        
         images_data = [image.to_dict() for image in images]
         return {"data": images_data}
                   
@@ -472,37 +474,40 @@ def get_images(product_id: int, authorization: str = Header(None), db: Session =
 @app.get("/v1/product/{product_id}/image/{image_id}")
 def get_image(product_id: int, image_id: int, authorization: str = Header(None), db: Session = Depends(get_db)):
     try:
-        # Check authorization header
+        
         if authorization is None:
-            raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Authorization header missing")
+            return response(status_code=status.HTTP_400_BAD_REQUEST, detail="Authorization header missing")
 
         auth_type, encoded_code = authorization.split(" ")
         if auth_type != "Basic":
-            raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Authorization type not supported")
+            return response(status_code=status.HTTP_400_BAD_REQUEST, detail="Authorization type not supported")
 
         code = base64.b64decode(encoded_code).decode("utf-8")
         username, password = code.split(":")
 
-        # Get user from database
+        
         user = db.query(models.User).filter_by(username=username).first()
         if not user:
-            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="User not found")
+            return response(status_code=status.HTTP_404_NOT_FOUND, detail="User not found")
 
-        # Get product from database
+        
         product = db.query(models.Product).filter_by(id=product_id).first()
         if not product:
-            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Product not found")
+            return response(status_code=status.HTTP_404_NOT_FOUND, detail="Product not found")
 
-        # Check if user is owner of the product
+       
         if product.owner_user_id != user.id:
-            raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="User is not authorized to access images for this product")
+                return response(False, "Not authorized to access other user's data", status.HTTP_403_FORBIDDEN)
 
-        # Get image from database
+        if not pwd_context.verify(password, user.password):
+                return response(False, "Invalid authorization", status.HTTP_401_UNAUTHORIZED)
+        
+        
         image = db.query(models.Image).filter_by(image_id=image_id, product_id=product_id).first()
         if not image:
-            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Image not found")
+            return response(status_code=status.HTTP_404_NOT_FOUND, detail="Image not found")
 
-        # Return image details
+        
         return response(True, "Image data fetched successfully",
                             status.HTTP_200_OK, data=json.loads(json.dumps(image.to_dict(),
                                                                            indent=4, sort_keys=True, default=str)))
@@ -515,45 +520,45 @@ def get_image(product_id: int, image_id: int, authorization: str = Header(None),
 @app.post("/v1/product/{product_id}/image")
 def create_image(product_id: int, file: UploadFile = File(...), authorization: str = Header(None), db: Session = Depends(get_db)):
     try:
-        # Check authorization header
+        
         if authorization is None:
-            raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Authorization header missing")
+            return response(status_code=status.HTTP_400_BAD_REQUEST, detail="Authorization header missing")
 
         auth_type, encoded_code = authorization.split(" ")
         if auth_type != "Basic":
-            raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Authorization type not supported")
+            return response(status_code=status.HTTP_400_BAD_REQUEST, detail="Authorization type not supported")
 
         code = base64.b64decode(encoded_code).decode("utf-8")
         username, password = code.split(":")
 
-        # Get user from database
+     
         user = db.query(models.User).filter_by(username=username).first()
         if not user:
-            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="User not found")
+            return response(status_code=status.HTTP_404_NOT_FOUND, detail="User not found")
 
-        # Get product from database
+       
         product = db.query(models.Product).filter_by(id=product_id).first()
         if not product:
-            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Product not found")
+            return response(status_code=status.HTTP_404_NOT_FOUND, detail="Product not found")
 
-        # Check if user is owner of the product
-        if product.owner_user_id != user.id:
-            raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="User is not authorized to add images to this product")
-
-        # Check file type
+        
+        if not pwd_context.verify(password, user.password):
+                return response(False, "Invalid authorization", status.HTTP_401_UNAUTHORIZED)
+        
+      
         allowed_file_types = ["jpg", "jpeg", "png"]
         ext = file.filename.split(".")[-1]
         if ext not in allowed_file_types:
-            raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=f"Invalid file type. Allowed types: {', '.join(allowed_file_types)}")
+            return response(status_code=status.HTTP_400_BAD_REQUEST, detail=f"Invalid file type. Allowed types: {', '.join(allowed_file_types)}")
 
-        # Generate unique filename
+        
         filename = f"{str(product_id)}_{str(uuid.uuid4())}.{ext}"
+        print(S3_BUCKET_NAME, USE_PROFILE)
+      
+        s3_client = boto3.Session(profile_name='dev').client("s3") if USE_PROFILE else boto3.client("s3")
+        s3_client.put_object(Body=file.file, Bucket=S3_BUCKET_NAME, Key=filename)
 
-        # Upload file to S3 bucket
-        s3_client = boto3.client("s3", aws_access_key_id=AWS_ACCESS_KEY_ID, aws_secret_access_key=AWS_SECRET_ACCESS_KEY)
-        s3_client.upload_fileobj(file.file, S3_BUCKET_NAME, filename)
-
-        # Save image details to database
+       
         new_image = models.Image(
             product_id=product_id,
             file_name=filename,
@@ -576,46 +581,45 @@ def create_image(product_id: int, file: UploadFile = File(...), authorization: s
 @app.delete("/v1/product/{product_id}/image/{image_id}")
 def delete_image(product_id: int, image_id: int, authorization: str = Header(None), db: Session = Depends(get_db)):
     try:
-        # Check authorization header
+      
         if authorization is None:
-            raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Authorization header missing")
+            return response(status_code=status.HTTP_400_BAD_REQUEST, detail="Authorization header missing")
 
         auth_type, encoded_code = authorization.split(" ")
         if auth_type != "Basic":
-            raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Authorization type not supported")
+            return response(status_code=status.HTTP_400_BAD_REQUEST, detail="Authorization type not supported")
 
         code = base64.b64decode(encoded_code).decode("utf-8")
         username, password = code.split(":")
 
-        # Get user from database
+
         user = db.query(models.User).filter_by(username=username).first()
         if not user:
-            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="User not found")
+            return response(status_code=status.HTTP_404_NOT_FOUND, detail="User not found")
 
-        # Get image from database
+       
         image = db.query(models.Image).filter_by(image_id=image_id).first()
         if not image:
-            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Image not found")
+           return response(False, "Image not found", status.HTTP_404_NOT_FOUND)
 
-        # Get product from database
+    
         product = db.query(models.Product).filter_by(id=product_id).first()
         if not product:
-            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Product not found")
+            return response(status_code=status.HTTP_404_NOT_FOUND, detail="Product not found")
 
-        # Check if user is owner of the product
-        if product.owner_user_id != user.id:
-            raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="User is not authorized to delete images from this product")
-
-        # Check if user is owner of the image
+    
+        if not pwd_context.verify(password, user.password):
+                return response(False, "Invalid authorization", status.HTTP_401_UNAUTHORIZED)
+      
         if image.owner_user_id != user.id:
-            raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="User is not authorized to delete this image")
+            return response(status_code=status.HTTP_401_UNAUTHORIZED, detail="User is not authorized to delete this image")
 
-        # Delete image from S3 bucket
-        s3_client = boto3.client("s3", aws_access_key_id=AWS_ACCESS_KEY_ID, aws_secret_access_key=AWS_SECRET_ACCESS_KEY)
+     
+        print(S3_BUCKET_NAME, USE_PROFILE)
+        s3_client = boto3.Session(profile_name='dev').client("s3") if USE_PROFILE else boto3.client("s3")
         s3_client.delete_object(Bucket=S3_BUCKET_NAME, Key=image.file_name)
         
 
-        # Delete image details from database
         db.delete(image)
         db.commit()
 

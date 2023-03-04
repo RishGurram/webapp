@@ -17,4 +17,4 @@ bh_unicode_properties.cache
 db.sqlite3
 *.pkrvars.hcl
 webapp/media/
-
+venv
