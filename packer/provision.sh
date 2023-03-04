@@ -15,7 +15,7 @@ enabled=1
 gpgcheck=0
 EOF
 sudo yum makecache
-sudo yum install postgresql14 -y
+sudo yum install postgresql14 postgresql-devel -y
 
 
 # Install Python 3.9
