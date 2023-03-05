@@ -540,6 +540,9 @@ def create_image(product_id: int, file: UploadFile = File(...), authorization: s
         product = db.query(models.Product).filter_by(id=product_id).first()
         if not product:
             return response(status_code=status.HTTP_404_NOT_FOUND, detail="Product not found")
+        
+        if product.owner_user_id != user.id:
+            return response(status_code=status.HTTP_401_UNAUTHORIZED, detail="User is not authorized to upload this image")
 
         
         if not pwd_context.verify(password, user.password):
