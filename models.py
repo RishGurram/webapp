@@ -84,5 +84,3 @@ class Image(Base):
             "date_created": self.date_created,
             "s3_bucket_path": self.s3_bucket_path
         }
-   
-
