@@ -45,3 +45,4 @@ The API uses basic authentication for accessing user details. A token is generat
 
 ### License
 This project is licensed under the MIT License.
+
