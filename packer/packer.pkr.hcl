@@ -79,47 +79,6 @@ build {
     source      = "../webapp"
     destination = "/home/ec2-user/"
   }
-  // provisioner "file" {
-  //   source      = "_init_.py"
-  //   destination = "/home/ec2-user/"
-  // }
-  // provisioner "file" {
-  //   source      = "database.py"
-  //   destination = "/home/ec2-user/"
-  // }
-  // provisioner "file" {
-  //   source      = "main.py"
-  //   destination = "/home/ec2-user/"
-  // }
-  // provisioner "file" {
-  //   source      = "models.py"
-  //   destination = "/home/ec2-user/"
-  // }
-  // provisioner "file" {
-  //   source      = "schema.py"
-  //   destination = "/home/ec2-user/"
-  // }
-  // provisioner "file" {
-  //   source      = "test_main.py"
-  //   destination = "/home/ec2-user/"
-  // }
-  // provisioner "file" {
-  //   source      = "utils.py"
-  //   destination = "/home/ec2-user/"
-  // }
-  // provisioner "file" {
-  //   source      = "requirements.txt"
-  //   destination = "/home/ec2-user/"
-  // }
-  // provisioner "file" {
-  //   source      = "webapp.service"
-  //   destination = "/home/ec2-user/"
-  // }
-  // provisioner "file" {
-  //   source      = "nginx.conf"
-  //   destination = "/home/ec2-user/"
-  // }
-
 
   provisioner "shell" {
     script = "packer/provision.sh"

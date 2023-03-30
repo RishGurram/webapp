@@ -21,6 +21,15 @@ from database import get_db, engine
 from schema import User, LoginSerializer, Product, CustomException
 from utils import response
 from datetime import datetime
+from logging.config import dictConfig
+import logging
+from log import LogConfig
+import statsd
+
+c = statsd.StatsClient()
+
+dictConfig(LogConfig().dict())
+logger = logging.getLogger("webapp")
 
 models.Base.metadata.create_all(bind=engine)
 
@@ -52,6 +61,7 @@ async def handle_custom_exception(request, exc: CustomException):
 @app.post("/v1/user")
 def create_user(user: User, db: Session = Depends(get_db)):
     try:
+        c.incr("Create_User")
         existing_user = db.query(models.User).filter_by(username=user.username).first()
         if existing_user:
             return response(False, "User with this username already exists", status.HTTP_400_BAD_REQUEST)
@@ -67,7 +77,7 @@ def create_user(user: User, db: Session = Depends(get_db)):
         return_data = json.loads(
             json.dumps(db.query(models.User).filter_by(username=user.username).first().to_dict(),
                        indent=4, sort_keys=True, default=str))
-        return response(True, "User Created Successfully", status.HTTP_201_CREATED, return_data)
+        return response(True, "User Created Successfully", status.HTTP_201_CREATED, return_data, log_level="info")
     except Exception as e:
         return response(False, str(e), status.HTTP_408_REQUEST_TIMEOUT)
 
@@ -109,6 +119,7 @@ def login(user: LoginSerializer, auth: str = Depends(authenticate_user)):
 @app.get("/v1/user/{user_id}")
 async def get_user(user_id: int, authorization: str = Header(None), db: Session = Depends(get_db)):
     try:
+        c.incr("Get_User")
         # Check if user exists
         user = db.query(models.User).filter_by(id=user_id).first()
         if not user:
@@ -132,10 +143,9 @@ async def get_user(user_id: int, authorization: str = Header(None), db: Session 
                 return response(False, "Invalid authorization", status.HTTP_401_UNAUTHORIZED)
 
             
-
             return response(True, "User data fetched successfully",
                             status.HTTP_200_OK, data=json.loads(json.dumps(user.to_dict(),
-                                                                           indent=4, sort_keys=True, default=str)))
+                                                                           indent=4, sort_keys=True, default=str)), log_level="info")
         except Exception as e:
             return response(False, "Invalid authorization header : {}".format(str(e)), status.HTTP_400_BAD_REQUEST)
 
@@ -146,6 +156,7 @@ async def get_user(user_id: int, authorization: str = Header(None), db: Session 
 @app.put("/v1/user/{user_id}", response_class=JSONResponse)
 async def update_user(user_id: int, data: dict, authorization: str = Header(None), db: Session = Depends(get_db)):
     try:
+        c.incr("Update_User")
         # Check if user exists
         user = db.query(models.User).filter_by(id=user_id).first()
         if not user:
@@ -177,7 +188,8 @@ async def update_user(user_id: int, data: dict, authorization: str = Header(None
             db.commit()
             db.refresh(user)
 
-            return response(True, "User Updated successfully", status.HTTP_204_NO_CONTENT)
+            
+            return response(True, "User Updated successfully", status.HTTP_204_NO_CONTENT, log_level="info")
 
             
         except Exception as e:
@@ -190,13 +202,16 @@ async def update_user(user_id: int, data: dict, authorization: str = Header(None
 
 @app.get("/healthz/")
 async def health_check():
-    return response(True, "Health check successful", status.HTTP_200_OK)
+    c.incr("Health")
+    return response(True, "Health check successful", status.HTTP_200_OK, log_level="info")
+    
 
 
 
 @app.post("/v1/product")
 def create_product(product: Product, authorization: str = Header(None),  db: Session = Depends(get_db)):
     try:
+        c.incr("Create_Product")
 
         if product.quantity < 0 or product.quantity > 100:
             return response(False, "Product quantity should be a positive integer", status.HTTP_400_BAD_REQUEST)
@@ -239,7 +254,7 @@ def create_product(product: Product, authorization: str = Header(None),  db: Ses
         return_data = json.loads(
             json.dumps(db.query(models.Product).filter_by(sku=product.sku).first().to_dict(),
                        indent=4, sort_keys=True, default=str))
-        return response(True, "Product Created Successfully", status.HTTP_201_CREATED, return_data)
+        return response(True, "Product Created Successfully", status.HTTP_201_CREATED, return_data, log_level="info")
     except Exception as e:
         return response(False, str(e), status.HTTP_408_REQUEST_TIMEOUT)
 
@@ -248,8 +263,7 @@ def create_product(product: Product, authorization: str = Header(None),  db: Ses
 @app.put("/v1/product/{product_id}")
 async def update_product(product_id: int, data: Product, authorization: str = Header(None), db: Session = Depends(get_db)):
     try:
-
-        
+        c.incr("Update_Product")
         # Check if product exists
         product = db.query(models.Product).filter_by(id=product_id).first()
         if not product:
@@ -294,7 +308,7 @@ async def update_product(product_id: int, data: Product, authorization: str = He
             db.commit()
             db.refresh(product)
 
-            return response(True, "Product Updated successfully", status.HTTP_204_NO_CONTENT)
+            return response(True, "Product Updated successfully", status.HTTP_204_NO_CONTENT, log_level="info")
 
             
         except Exception as e:
@@ -306,6 +320,7 @@ async def update_product(product_id: int, data: Product, authorization: str = He
 @app.patch("/v1/product/{product_id}")
 async def update_product(product_id: int, data: dict, authorization: str = Header(None), db: Session = Depends(get_db)):
     try:
+        c.incr("Update_Product")
 
         
         # Check if product exists
@@ -350,7 +365,7 @@ async def update_product(product_id: int, data: dict, authorization: str = Heade
             db.commit()
             db.refresh(product)
 
-            return response(True, "Product Updated successfully", status.HTTP_204_NO_CONTENT)
+            return response(True, "Product Updated successfully", status.HTTP_204_NO_CONTENT, log_level="info")
 
             
         except Exception as e:
@@ -363,6 +378,7 @@ async def update_product(product_id: int, data: dict, authorization: str = Heade
 @app.delete("/v1/product/{product_id}")
 async def delete_product(product_id: int, authorization: str = Header(None), db: Session = Depends(get_db)):
     try:
+        c.incr("Delete_Product")
         # Check if product exists
         product = db.query(models.Product).filter_by(id=product_id).first()
         if not product:
@@ -395,7 +411,7 @@ async def delete_product(product_id: int, authorization: str = Header(None), db:
             db.delete(product)
             db.commit()
 
-            return response(True, "Product deleted successfully", status.HTTP_204_NO_CONTENT)
+            return response(True, "Product deleted successfully", status.HTTP_204_NO_CONTENT, log_level="info")
 
         except Exception as e:
             return response(False, "Invalid authorization header : {}".format(str(e)), status.HTTP_400_BAD_REQUEST)
@@ -405,12 +421,13 @@ async def delete_product(product_id: int, authorization: str = Header(None), db:
 
 @app.get("/v1/product/{product_id}")
 async def get_product(product_id: int, db: Session = Depends(get_db)):
+        c.incr("Get_Product")
         product = db.query(models.Product).filter_by(id=product_id).first()
         if not product:
             return response(False, "Product not found", status.HTTP_404_NOT_FOUND)
 
         return response(True, "Product data retrieved successfully", status.HTTP_200_OK,
-                            data=json.loads(json.dumps(product.to_dict(), indent=4, sort_keys=True, default=str)))
+                            data=json.loads(json.dumps(product.to_dict(), indent=4, sort_keys=True, default=str)), log_level="info")
 
 
 s3 = boto3.client('s3')
@@ -428,13 +445,14 @@ class CustomJSONEncoder(json.JSONEncoder):
 @app.get("/v1/product/{product_id}/image",response_class=JSONResponse)
 def get_images(product_id: int, authorization: str = Header(None), db: Session = Depends(get_db)):
     try:
+        c.incr("Get_ProductImage")
         
         if authorization is None:
-            return response(status_code=status.HTTP_400_BAD_REQUEST, detail="Authorization header missing")
+            return response(False, "Authorization header missing", status.HTTP_400_BAD_REQUEST)
 
         auth_type, encoded_code = authorization.split(" ")
         if auth_type != "Basic":
-            return response(status_code=status.HTTP_400_BAD_REQUEST, detail="Authorization type not supported")
+            return response(False, "Authorization type not supported", status.HTTP_400_BAD_REQUEST)
 
         code = base64.b64decode(encoded_code).decode("utf-8")
         username, password = code.split(":")
@@ -442,12 +460,12 @@ def get_images(product_id: int, authorization: str = Header(None), db: Session =
         
         user = db.query(models.User).filter_by(username=username).first()
         if not user:
-            return response(status_code=status.HTTP_404_NOT_FOUND, detail="User not found")
+            return response(False, "User not found", status.HTTP_404_NOT_FOUND)
 
         
         product = db.query(models.Product).filter_by(id=product_id).first()
         if not product:
-            return response(status_code=status.HTTP_404_NOT_FOUND, detail="Product not found")
+            return response(False, "Product not found", status.HTTP_404_NOT_FOUND)
 
        
         if product.owner_user_id != user.id:
@@ -460,7 +478,10 @@ def get_images(product_id: int, authorization: str = Header(None), db: Session =
 
         
         images_data = [image.to_dict() for image in images]
-        return {"data": images_data}
+        logger.info("Images fetched successfully 200")
+        return {"data": images_data }
+        
+    
                   
 
     except Exception as e:
@@ -474,13 +495,14 @@ def get_images(product_id: int, authorization: str = Header(None), db: Session =
 @app.get("/v1/product/{product_id}/image/{image_id}")
 def get_image(product_id: int, image_id: int, authorization: str = Header(None), db: Session = Depends(get_db)):
     try:
+        c.incr("Get_ProductImageByID")
         
         if authorization is None:
-            return response(status_code=status.HTTP_400_BAD_REQUEST, detail="Authorization header missing")
+            return response(False, "Authorization header missing", status.HTTP_400_BAD_REQUEST)
 
         auth_type, encoded_code = authorization.split(" ")
         if auth_type != "Basic":
-            return response(status_code=status.HTTP_400_BAD_REQUEST, detail="Authorization type not supported")
+            return response(False, "Authorization type not supported", status.HTTP_400_BAD_REQUEST)
 
         code = base64.b64decode(encoded_code).decode("utf-8")
         username, password = code.split(":")
@@ -488,12 +510,12 @@ def get_image(product_id: int, image_id: int, authorization: str = Header(None),
         
         user = db.query(models.User).filter_by(username=username).first()
         if not user:
-            return response(status_code=status.HTTP_404_NOT_FOUND, detail="User not found")
+            return response(False, "User not found", status.HTTP_404_NOT_FOUND)
 
         
         product = db.query(models.Product).filter_by(id=product_id).first()
         if not product:
-            return response(status_code=status.HTTP_404_NOT_FOUND, detail="Product not found")
+            return response(False, "Product not found", status.HTTP_404_NOT_FOUND)
 
        
         if product.owner_user_id != user.id:
@@ -505,12 +527,12 @@ def get_image(product_id: int, image_id: int, authorization: str = Header(None),
         
         image = db.query(models.Image).filter_by(image_id=image_id, product_id=product_id).first()
         if not image:
-            return response(status_code=status.HTTP_404_NOT_FOUND, detail="Image not found")
+            return response(False, "Image not found", status.HTTP_404_NOT_FOUND)
 
         
         return response(True, "Image data fetched successfully",
                             status.HTTP_200_OK, data=json.loads(json.dumps(image.to_dict(),
-                                                                           indent=4, sort_keys=True, default=str)))
+                                                                           indent=4, sort_keys=True, default=str)), log_level="info")
     except Exception as e:
             return response(False, "Invalid authorization header : {}".format(str(e)), status.HTTP_400_BAD_REQUEST)
 
@@ -520,13 +542,14 @@ def get_image(product_id: int, image_id: int, authorization: str = Header(None),
 @app.post("/v1/product/{product_id}/image")
 def create_image(product_id: int, file: UploadFile = File(...), authorization: str = Header(None), db: Session = Depends(get_db)):
     try:
+        c.incr("Create_ProductImage")
         
         if authorization is None:
-            return response(status_code=status.HTTP_400_BAD_REQUEST, detail="Authorization header missing")
+            return response(False, "Authorization header missing", status.HTTP_400_BAD_REQUEST)
 
         auth_type, encoded_code = authorization.split(" ")
         if auth_type != "Basic":
-            return response(status_code=status.HTTP_400_BAD_REQUEST, detail="Authorization type not supported")
+            return response(False, "Authorization type not supported", status.HTTP_400_BAD_REQUEST)
 
         code = base64.b64decode(encoded_code).decode("utf-8")
         username, password = code.split(":")
@@ -534,15 +557,17 @@ def create_image(product_id: int, file: UploadFile = File(...), authorization: s
      
         user = db.query(models.User).filter_by(username=username).first()
         if not user:
-            return response(status_code=status.HTTP_404_NOT_FOUND, detail="User not found")
+            return response(False, "User not found", status.HTTP_404_NOT_FOUND)
 
        
         product = db.query(models.Product).filter_by(id=product_id).first()
         if not product:
-            return response(status_code=status.HTTP_404_NOT_FOUND, detail="Product not found")
+            return response(False, "Product not found", status.HTTP_404_NOT_FOUND)
         
         if product.owner_user_id != user.id:
-            return response(status_code=status.HTTP_401_UNAUTHORIZED, detail="User is not authorized to upload this image")
+            return response(False, "User is not authorized to upload this image", status.HTTP_401_UNAUTHORIZED)
+    
+                
 
         
         if not pwd_context.verify(password, user.password):
@@ -552,10 +577,10 @@ def create_image(product_id: int, file: UploadFile = File(...), authorization: s
         allowed_file_types = ["jpg", "jpeg", "png"]
         ext = file.filename.split(".")[-1]
         if ext not in allowed_file_types:
-            return response(status_code=status.HTTP_400_BAD_REQUEST, detail=f"Invalid file type. Allowed types: {', '.join(allowed_file_types)}")
+            return response(False, f"Invalid file type. Allowed types: {', '.join(allowed_file_types)}" , status.HTTP_400_BAD_REQUEST)
 
         
-        filename = f"{str(product_id)}_{str(uuid.uuid4())}.{ext}"
+        filename = str(user.id)+"/"+file.filename
         print(S3_BUCKET_NAME, USE_PROFILE)
       
         s3_client = boto3.Session(profile_name='dev').client("s3") if USE_PROFILE else boto3.client("s3")
@@ -576,7 +601,7 @@ def create_image(product_id: int, file: UploadFile = File(...), authorization: s
     json.dumps(db.query(models.Image).filter_by(product_id=product_id, file_name=filename).first().to_dict(),
                indent=4, sort_keys=True, default=str))
 
-        return response(True, "Image uploaded Successfully", status.HTTP_201_CREATED, return_data)
+        return response(True, "Image uploaded Successfully", status.HTTP_201_CREATED, return_data, log_level="info")
     except Exception as e:
         return response(False, str(e), status.HTTP_408_REQUEST_TIMEOUT)
 
@@ -584,13 +609,14 @@ def create_image(product_id: int, file: UploadFile = File(...), authorization: s
 @app.delete("/v1/product/{product_id}/image/{image_id}")
 def delete_image(product_id: int, image_id: int, authorization: str = Header(None), db: Session = Depends(get_db)):
     try:
+        c.incr("Delete_ProductImage")
       
         if authorization is None:
-            return response(status_code=status.HTTP_400_BAD_REQUEST, detail="Authorization header missing")
+            return response(False, "Authorization header missing", status.HTTP_400_BAD_REQUEST)
 
         auth_type, encoded_code = authorization.split(" ")
         if auth_type != "Basic":
-            return response(status_code=status.HTTP_400_BAD_REQUEST, detail="Authorization type not supported")
+            return response(False, "Authorization type not supported", status.HTTP_400_BAD_REQUEST)
 
         code = base64.b64decode(encoded_code).decode("utf-8")
         username, password = code.split(":")
@@ -598,7 +624,7 @@ def delete_image(product_id: int, image_id: int, authorization: str = Header(Non
 
         user = db.query(models.User).filter_by(username=username).first()
         if not user:
-            return response(status_code=status.HTTP_404_NOT_FOUND, detail="User not found")
+            return response(False, "User not found", status.HTTP_404_NOT_FOUND)
 
        
         image = db.query(models.Image).filter_by(image_id=image_id).first()
@@ -608,14 +634,14 @@ def delete_image(product_id: int, image_id: int, authorization: str = Header(Non
     
         product = db.query(models.Product).filter_by(id=product_id).first()
         if not product:
-            return response(status_code=status.HTTP_404_NOT_FOUND, detail="Product not found")
+            return response(False, "Product not found", status.HTTP_404_NOT_FOUND)
 
     
         if not pwd_context.verify(password, user.password):
                 return response(False, "Invalid authorization", status.HTTP_401_UNAUTHORIZED)
       
         if image.owner_user_id != user.id:
-            return response(status_code=status.HTTP_401_UNAUTHORIZED, detail="User is not authorized to delete this image")
+            return response(False, "User is not authorized to delete this image", status.HTTP_401_UNAUTHORIZED)
 
      
         print(S3_BUCKET_NAME, USE_PROFILE)
@@ -626,7 +652,7 @@ def delete_image(product_id: int, image_id: int, authorization: str = Header(Non
         db.delete(image)
         db.commit()
 
-        return response(True, "Image deleted successfully", status.HTTP_204_NO_CONTENT)
+        return response(True, "Image deleted successfully", status.HTTP_204_NO_CONTENT, log_level="info")
 
     except Exception as e:
         return response(False, str(e), status.HTTP_408_REQUEST_TIMEOUT)

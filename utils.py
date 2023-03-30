@@ -2,8 +2,15 @@
 from fastapi.responses import JSONResponse, Response
 from fastapi import status as st
 
+from logging.config import dictConfig
+import logging
+from log import LogConfig
 
-def response(status: bool, message: str, status_code: int, data=None, headers=None):
+dictConfig(LogConfig().dict())
+logger = logging.getLogger("webapp")
+
+
+def response(status: bool, message: str, status_code: int, data=None, headers=None, log_level="error"):
     """
     Customize the response for better information delivery.
 
@@ -18,8 +25,12 @@ def response(status: bool, message: str, status_code: int, data=None, headers=No
         headers = {}
 
     
-    
+    if log_level == 'error':
+        logger.error(message + " {}".format(status_code))
+    else:
+        logger.info(message + " {}".format(status_code))
     message = message if type(message) in [dict, list] else {"message":message}
+
 
     if status_code == st.HTTP_204_NO_CONTENT:
         return Response(status_code=status_code, headers=headers, media_type="application/json")

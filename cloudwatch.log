@@ -1,0 +1,149 @@
+[Mar/20/2023 18:01:33] INFO [webapp:199] healthcheck
+[Mar/20/2023 18:03:25] INFO [webapp:199] healthcheck
+[Mar/20/2023 18:18:48] INFO [webapp:203] healthcheck
+[Mar/20/2023 18:19:40] INFO [webapp:203] healthcheck
+[Mar/20/2023 18:19:40] ERROR [webapp:29] Health check successful200
+[Mar/20/2023 18:19:52] INFO [webapp:203] healthcheck
+[Mar/20/2023 18:19:52] ERROR [webapp:29] Health check successful 200
+[Mar/20/2023 18:20:22] INFO [webapp:31] Health check successful 200
+[Mar/20/2023 18:29:18] ERROR [webapp:29] User with this username already exists 400
+[Mar/20/2023 18:29:41] INFO [webapp:31] User data fetched successfully 200
+[Mar/20/2023 18:30:00] ERROR [webapp:29] Not authorized to access other user's data 403
+[Mar/20/2023 18:30:15] INFO [webapp:186] User updated
+[Mar/20/2023 18:30:15] INFO [webapp:31] User Updated successfully 204
+[Mar/20/2023 18:33:48] ERROR [webapp:29] Invalid authorization 401
+[Mar/20/2023 18:33:56] ERROR [webapp:29] Not authorized to access other user's data 403
+[Mar/20/2023 18:34:01] ERROR [webapp:29] Not authorized to access other user's data 403
+[Mar/20/2023 18:34:11] ERROR [webapp:29] Not authorized to access other user's data 403
+[Mar/20/2023 18:34:15] ERROR [webapp:29] Not authorized to access other user's data 403
+[Mar/20/2023 18:34:21] ERROR [webapp:29] Invalid authorization 401
+[Mar/20/2023 18:35:37] ERROR [webapp:29] Product with this SKU already exists 400
+[Mar/20/2023 18:35:42] INFO [webapp:31] Product Created Successfully 201
+[Mar/20/2023 18:36:12] ERROR [webapp:29] Not authorized to access other user's data 403
+[Mar/20/2023 18:36:21] INFO [webapp:31] Product Updated successfully 204
+[Mar/20/2023 18:36:27] ERROR [webapp:29] User not found 404
+[Mar/20/2023 18:36:36] ERROR [webapp:29] Not authorized to access other user's data 403
+[Mar/20/2023 18:36:42] ERROR [webapp:29] Invalid authorization 401
+[Mar/20/2023 18:36:46] ERROR [webapp:29] Invalid authorization 401
+[Mar/20/2023 18:36:51] ERROR [webapp:29] Product with this SKU already exists 400
+[Mar/20/2023 18:38:13] ERROR [webapp:29] Invalid authorization 401
+[Mar/20/2023 18:38:21] INFO [webapp:31] Product Updated successfully 204
+[Mar/20/2023 18:38:25] INFO [webapp:31] Product Updated successfully 204
+[Mar/20/2023 18:38:29] ERROR [webapp:29] Not authorized to access other user's data 403
+[Mar/20/2023 18:38:36] ERROR [webapp:29] Not authorized to access other user's data 403
+[Mar/20/2023 18:38:39] ERROR [webapp:29] Invalid authorization 401
+[Mar/20/2023 18:38:58] ERROR [webapp:29] Product not found 404
+[Mar/20/2023 18:39:26] ERROR [webapp:29] Product not found 404
+[Mar/20/2023 18:39:30] ERROR [webapp:29] Invalid authorization 401
+[Mar/20/2023 18:39:35] ERROR [webapp:29] Authorization header missing 400
+[Mar/20/2023 18:39:56] ERROR [webapp:29] Not authorized to access other user's data 403
+[Mar/20/2023 18:39:59] ERROR [webapp:29] Not authorized to access other user's data 403
+[Mar/20/2023 18:40:02] ERROR [webapp:29] Invalid authorization 401
+[Mar/20/2023 18:40:06] ERROR [webapp:29] Invalid authorization 401
+[Mar/20/2023 18:40:10] INFO [webapp:31] Product deleted successfully 204
+[Mar/20/2023 18:40:20] ERROR [webapp:29] Not authorized to access other user's data 403
+[Mar/20/2023 18:40:26] ERROR [webapp:29] Product not found 404
+[Mar/20/2023 18:40:31] ERROR [webapp:29] Not authorized to access other user's data 403
+[Mar/20/2023 18:40:34] ERROR [webapp:29] Product not found 404
+[Mar/20/2023 18:41:15] INFO [webapp:31] Product data retrieved successfully 200
+[Mar/20/2023 18:41:25] INFO [webapp:31] User data fetched successfully 200
+[Mar/20/2023 18:41:28] ERROR [webapp:29] Not authorized to access other user's data 403
+[Mar/20/2023 18:41:36] INFO [webapp:31] User data fetched successfully 200
+[Mar/20/2023 18:42:02] INFO [webapp:31] Product data retrieved successfully 200
+[Mar/20/2023 18:42:04] INFO [webapp:31] Product data retrieved successfully 200
+[Mar/20/2023 18:42:07] INFO [webapp:31] Product data retrieved successfully 200
+[Mar/20/2023 18:42:09] ERROR [webapp:29] Product not found 404
+[Mar/20/2023 18:42:12] ERROR [webapp:29] Product not found 404
+[Mar/20/2023 18:42:15] INFO [webapp:31] Product data retrieved successfully 200
+[Mar/20/2023 18:42:18] INFO [webapp:31] Product data retrieved successfully 200
+[Mar/20/2023 18:42:26] INFO [webapp:31] Product data retrieved successfully 200
+[Mar/20/2023 18:42:29] INFO [webapp:31] Product data retrieved successfully 200
+[Mar/20/2023 18:42:49] ERROR [webapp:29] expected string or bytes-like object, got 'NoneType' 408
+[Mar/20/2023 18:49:37] ERROR [webapp:29] Invalid authorization header : 'list' object has no attribute 'to_dict' 400
+[Mar/20/2023 18:52:15] INFO [webapp:31] Image data fetched successfully {'data': [{'image_id': 4, 'product_id': 2, 'file_name': '2_275f594e-1f13-435b-bbac-4331fec59743.jpeg', 'date_created': datetime.datetime(2023, 3, 2, 20, 59, 45, 456319), 's3_bucket_path': 'dev-9618316292-20230302202519544500000001/2_275f594e-1f13-435b-bbac-4331fec59743.jpeg'}, {'image_id': 5, 'product_id': 2, 'file_name': '2_200346f9-0156-44e7-b3c7-a58fd9618eed.jpeg', 'date_created': datetime.datetime(2023, 3, 4, 1, 25, 8, 132814), 's3_bucket_path': 's3bucketri/2_200346f9-0156-44e7-b3c7-a58fd9618eed.jpeg'}]}
+[Mar/20/2023 18:52:15] ERROR [webapp:29] Invalid authorization header : '<' not supported between instances of 'dict' and 'int' 400
+[Mar/20/2023 18:57:37] INFO [webapp:469] Images fetched successfully
+[Mar/20/2023 18:58:59] ERROR [webapp:29] Invalid authorization header : Logger._log() got an unexpected keyword argument 'status_code' 400
+[Mar/20/2023 19:00:30] INFO [webapp:469] Images fetched successfully
+[Mar/20/2023 19:01:41] INFO [webapp:469] Images fetched successfully
+[Mar/20/2023 19:02:48] INFO [webapp:469] Images fetched successfully
+[Mar/20/2023 19:03:08] ERROR [webapp:29] expected string or bytes-like object, got 'NoneType' 408
+[Mar/20/2023 20:01:13] ERROR [webapp:29] expected string or bytes-like object, got 'NoneType' 408
+[Mar/20/2023 20:19:34] INFO [webapp:469] Images fetched successfully 200
+[Mar/20/2023 20:29:53] ERROR [webapp:29] User with this username already exists 400 
+[Mar/20/2023 20:35:23] ERROR [webapp:29] User with this username already exists 400
+[Mar/20/2023 20:51:39] ERROR [webapp:29] response() got an unexpected keyword argument 'detail' 408
+[Mar/20/2023 20:51:45] INFO [webapp:469] Images fetched successfully 200
+[Mar/20/2023 20:54:09] INFO [webapp:31] Product data retrieved successfully 200
+[Mar/20/2023 20:54:30] ERROR [webapp:29] expected string or bytes-like object, got 'NoneType' 408
+[Mar/20/2023 21:22:16] ERROR [webapp:29] unsupported operand type(s) for +: 'int' and 'str' 408
+[Mar/20/2023 21:23:48] ERROR [webapp:29] expected string or bytes-like object, got 'NoneType' 408
+[Mar/20/2023 21:24:18] ERROR [webapp:29] expected string or bytes-like object, got 'NoneType' 408
+[Mar/20/2023 21:25:53] ERROR [webapp:29] Parameter validation failed:
+Invalid bucket name "": Bucket name must match the regex "^[a-zA-Z0-9.\-_]{1,255}$" or be an ARN matching the regex "^arn:(aws).*:(s3|s3-object-lambda):[a-z\-0-9]*:[0-9]{12}:accesspoint[/:][a-zA-Z0-9\-.]{1,63}$|^arn:(aws).*:s3-outposts:[a-z\-0-9]+:[0-9]{12}:outpost[/:][a-zA-Z0-9\-]{1,63}[/:]accesspoint[/:][a-zA-Z0-9\-]{1,63}$" 408
+[Mar/20/2023 21:28:56] ERROR [webapp:29] Parameter validation failed:
+Invalid bucket name "": Bucket name must match the regex "^[a-zA-Z0-9.\-_]{1,255}$" or be an ARN matching the regex "^arn:(aws).*:(s3|s3-object-lambda):[a-z\-0-9]*:[0-9]{12}:accesspoint[/:][a-zA-Z0-9\-.]{1,63}$|^arn:(aws).*:s3-outposts:[a-z\-0-9]+:[0-9]{12}:outpost[/:][a-zA-Z0-9\-]{1,63}[/:]accesspoint[/:][a-zA-Z0-9\-]{1,63}$" 408
+[Mar/20/2023 21:29:43] INFO [webapp:31] Image uploaded Successfully 201
+[Mar/20/2023 21:30:10] ERROR [webapp:29] response() got an unexpected keyword argument 'detail' 408
+[Mar/20/2023 21:30:15] ERROR [webapp:29] response() got an unexpected keyword argument 'detail' 408
+[Mar/20/2023 21:30:28] INFO [webapp:31] Image uploaded Successfully 201
+[Mar/20/2023 21:30:38] INFO [webapp:31] Image deleted successfully 204
+[Mar/20/2023 21:31:51] INFO [webapp:469] Images fetched successfully 200
+[Mar/20/2023 21:31:55] ERROR [webapp:29] Invalid authorization header : response() got an unexpected keyword argument 'detail' 400
+[Mar/20/2023 21:32:04] ERROR [webapp:29] Invalid authorization 401
+[Mar/20/2023 21:32:13] ERROR [webapp:29] Not authorized to access other user's data 403
+[Mar/20/2023 21:32:50] INFO [webapp:31] Image uploaded Successfully 201
+[Mar/20/2023 21:32:55] ERROR [webapp:29] response() got an unexpected keyword argument 'detail' 408
+[Mar/20/2023 21:33:07] ERROR [webapp:29] Invalid authorization 401
+[Mar/20/2023 21:33:52] ERROR [webapp:29] response() got an unexpected keyword argument 'detail' 408
+[Mar/20/2023 21:34:02] ERROR [webapp:29] response() got an unexpected keyword argument 'detail' 408
+[Mar/20/2023 21:34:05] ERROR [webapp:29] response() got an unexpected keyword argument 'detail' 408
+[Mar/20/2023 21:34:13] INFO [webapp:31] Image uploaded Successfully 201
+[Mar/20/2023 21:34:38] ERROR [webapp:29] response() got an unexpected keyword argument 'detail' 408
+[Mar/20/2023 21:34:44] INFO [webapp:31] Image uploaded Successfully 201
+[Mar/20/2023 21:35:22] ERROR [webapp:29] Image not found 404
+[Mar/20/2023 21:35:31] ERROR [webapp:29] Image not found 404
+[Mar/20/2023 21:35:35] ERROR [webapp:29] Invalid authorization 401
+[Mar/20/2023 21:35:42] INFO [webapp:31] Image deleted successfully 204
+[Mar/20/2023 21:36:21] ERROR [webapp:29] Invalid authorization header : response() got an unexpected keyword argument 'detail' 400
+[Mar/20/2023 21:36:41] INFO [webapp:469] Images fetched successfully 200
+[Mar/20/2023 21:36:56] INFO [webapp:31] Image data fetched successfully 200
+[Mar/20/2023 21:37:02] ERROR [webapp:29] Invalid authorization 401
+[Mar/20/2023 21:37:08] ERROR [webapp:29] Invalid authorization 401
+[Mar/20/2023 21:37:12] ERROR [webapp:29] Invalid authorization header : response() got an unexpected keyword argument 'detail' 400
+[Mar/20/2023 21:37:26] INFO [webapp:469] Images fetched successfully 200
+[Mar/20/2023 21:37:44] INFO [webapp:31] Image uploaded Successfully 201
+[Mar/20/2023 21:37:58] ERROR [webapp:29] Not authorized to access other user's data 403
+[Mar/20/2023 21:38:02] ERROR [webapp:29] Not authorized to access other user's data 403
+[Mar/20/2023 21:38:09] INFO [webapp:31] Image data fetched successfully 200
+[Mar/20/2023 21:38:21] ERROR [webapp:29] response() got an unexpected keyword argument 'detail' 408
+[Mar/20/2023 21:39:27] INFO [webapp:31] Image uploaded Successfully 201
+[Mar/20/2023 21:39:32] ERROR [webapp:29] Invalid authorization 401
+[Mar/20/2023 21:39:39] ERROR [webapp:29] response() got an unexpected keyword argument 'detail' 408
+[Mar/20/2023 21:39:45] INFO [webapp:31] Image uploaded Successfully 201
+[Mar/20/2023 21:39:54] ERROR [webapp:29] response() got an unexpected keyword argument 'detail' 408
+[Mar/20/2023 21:40:50] ERROR [webapp:29] response() got an unexpected keyword argument 'detail' 408
+[Mar/20/2023 21:46:00] INFO [webapp:469] Images fetched successfully 200
+[Mar/20/2023 21:46:16] ERROR [webapp:29] Not authorized to access other user's data 403
+[Mar/20/2023 21:46:24] INFO [webapp:469] Images fetched successfully 200
+[Mar/20/2023 21:46:35] ERROR [webapp:29] Not authorized to access other user's data 403
+[Mar/20/2023 21:46:42] INFO [webapp:31] Image data fetched successfully 200
+[Mar/20/2023 21:46:52] ERROR [webapp:29] response() got an unexpected keyword argument 'detail' 408
+[Mar/20/2023 21:47:01] ERROR [webapp:29] Not authorized to access other user's data 403
+[Mar/20/2023 21:47:09] INFO [webapp:469] Images fetched successfully 200
+[Mar/20/2023 21:47:17] ERROR [webapp:29] response() got an unexpected keyword argument 'detail' 408
+[Mar/20/2023 21:47:23] ERROR [webapp:29] response() got an unexpected keyword argument 'detail' 408
+[Mar/20/2023 23:34:14] INFO [webapp:31] Image uploaded Successfully 201
+[Mar/20/2023 23:34:20] ERROR [webapp:29] response() got an unexpected keyword argument 'detail' 408
+[Mar/20/2023 23:58:34] ERROR [webapp:29] Authorization header missing 400
+[Mar/21/2023 00:09:04] ERROR [webapp:29] Authorization header missing 400
+[Mar/21/2023 00:09:07] INFO [webapp:31] Image uploaded Successfully 201
+[Mar/21/2023 00:09:11] ERROR [webapp:29] User is not authorized to upload this image 401
+[Mar/21/2023 00:09:49] ERROR [webapp:29] User is not authorized to upload this image 401
+[Mar/21/2023 00:09:54] ERROR [webapp:29] Invalid file type. Allowed types: jpg, jpeg, png 400
+[Mar/21/2023 00:10:03] INFO [webapp:31] Image uploaded Successfully 201
+[Mar/21/2023 00:10:29] ERROR [webapp:29] User is not authorized to upload this image 401
+[Mar/21/2023 00:12:03] ERROR [webapp:29] User is not authorized to delete this image 401
+[Mar/21/2023 00:12:09] ERROR [webapp:29] User is not authorized to delete this image 401
+[Mar/21/2023 00:12:25] INFO [webapp:481] Images fetched successfully 200
+[Mar/21/2023 00:12:32] INFO [webapp:31] Image deleted successfully 204
