@@ -405,8 +405,25 @@ async def delete_product(product_id: int, authorization: str = Header(None), db:
 
             if not pwd_context.verify(password, user.password):
                 return response(False, "Invalid authorization", status.HTTP_401_UNAUTHORIZED)
+            
+            # Deleting images related to product
+            # Extract the object keys
+            # print(db.query(models.Image.s3_bucket_path).filter_by(product_id=product_id).all())
+            keys = [obj[0] for obj in db.query(models.Image.s3_bucket_path).filter_by(product_id=product_id).all()]
+            # print(keys)
+
+            # Delete the objects in batches of up to 1000
+            batches = [keys[i:i+1000] for i in range(0, len(keys), 1000)]
 
             
+            try:
+                s3 = boto3.Session(profile_name='dev').client('s3') if USE_PROFILE else boto3.client("s3")
+                logger.error("Deleting all images from s3 realted to the image")
+                for batch in batches:
+                    delete_params = {'Bucket': S3_BUCKET_NAME, 'Delete': {'Objects': [{'Key': obj_key} for obj_key in batch]}}
+                    s3.delete_objects(**delete_params)
+            except Exception as e:
+                logger.error("Couldn't delete Images from S3, deleteing product only : {}".format(str(e)))
             # Delete product
             db.delete(product)
             db.commit()
@@ -579,26 +596,29 @@ def create_image(product_id: int, file: UploadFile = File(...), authorization: s
         if ext not in allowed_file_types:
             return response(False, f"Invalid file type. Allowed types: {', '.join(allowed_file_types)}" , status.HTTP_400_BAD_REQUEST)
 
-        
-        filename = str(user.id)+"/"+file.filename
-        print(S3_BUCKET_NAME, USE_PROFILE)
-      
-        s3_client = boto3.Session(profile_name='dev').client("s3") if USE_PROFILE else boto3.client("s3")
-        s3_client.put_object(Body=file.file, Bucket=S3_BUCKET_NAME, Key=filename)
-
-       
         new_image = models.Image(
             product_id=product_id,
-            file_name=filename,
-            s3_bucket_path=f"{S3_BUCKET_NAME}/{filename}",
+            file_name=file.filename,
+            s3_bucket_path=None,
             owner_user_id=user.id
         )
 
         db.add(new_image)
         db.commit()
+
+        file_key = str(product_id)+"/"+str(new_image.image_id) +"/"+file.filename
+      
+        s3_client = boto3.Session(profile_name='dev').client("s3") if USE_PROFILE else boto3.client("s3")
+        s3_client.put_object(Body=file.file, Bucket=S3_BUCKET_NAME, Key=file_key)
+
+       
+        new_image.s3_bucket_path = file_key
+
+        db.add(new_image)
+        db.commit()
         
         return_data = json.loads(
-    json.dumps(db.query(models.Image).filter_by(product_id=product_id, file_name=filename).first().to_dict(),
+    json.dumps(db.query(models.Image).filter_by(image_id=new_image.image_id).first().to_dict(),
                indent=4, sort_keys=True, default=str))
 
         return response(True, "Image uploaded Successfully", status.HTTP_201_CREATED, return_data, log_level="info")
