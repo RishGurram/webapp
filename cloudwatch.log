@@ -147,3 +147,7 @@ Invalid bucket name "": Bucket name must match the regex "^[a-zA-Z0-9.\-_]{1,255
 [Mar/21/2023 00:12:09] ERROR [webapp:29] User is not authorized to delete this image 401
 [Mar/21/2023 00:12:25] INFO [webapp:481] Images fetched successfully 200
 [Mar/21/2023 00:12:32] INFO [webapp:31] Image deleted successfully 204
+[Apr/12/2023 14:20:54] INFO [webapp:31] Health check successful 200
+[Apr/12/2023 14:20:55] INFO [webapp:31] Health check successful 200
+[Apr/12/2023 14:20:56] INFO [webapp:31] Health check successful 200
+[Apr/12/2023 14:20:57] INFO [webapp:31] Health check successful 200
