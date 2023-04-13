@@ -200,7 +200,7 @@ async def update_user(user_id: int, data: dict, authorization: str = Header(None
 
 
 
-@app.get("/rishika")
+@app.get("/healthz")
 async def health_check():
     c.incr("Health")
     return response(True, "Health check successful", status.HTTP_200_OK, log_level="info")
