@@ -47,7 +47,7 @@ jobs:
   check_format:
     runs-on: ubuntu-latest
     env:
-    PKR_VAR_ami_users: ${{ secrets.AMI_USERS }}
+      PKR_VAR_ami_users: ${{ secrets.AMI_USERS }}
     steps:
     - name: Checkout code
       uses: actions/checkout@v2
