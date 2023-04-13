@@ -58,7 +58,7 @@ async def handle_custom_exception(request, exc: CustomException):
     )
 
 
-@app.post("/v1/users")
+@app.post("/v1/user")
 def create_user(user: User, db: Session = Depends(get_db)):
     try:
         c.incr("Create_User")

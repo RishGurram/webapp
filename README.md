@@ -32,16 +32,11 @@ export DATABASE_URL=postgres://${POSTGRES_USER}:${POSTGRES_PASSWORD}@${POSTGRES_
     $ pytest
 
 ### Usage
-The API has the following endpoints:
-
-1. Register user: /register/ (POST)
-2. Login: /login/ (POST)
-3. User details: /users/ (GET, PUT)
 
 You can test the API using any REST client such as Postman.
 
-### Note
-The API uses basic authentication for accessing user details. A token is generated during login, which can be used to access the user details.
+Implementing Continuous Integration with Github Actions to run the application with unit tests for packer and application
+
 
 ### License
 This project is licensed under the MIT License.
