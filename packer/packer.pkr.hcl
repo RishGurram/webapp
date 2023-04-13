@@ -52,7 +52,7 @@ variable "environment" {
 }
 
 source "amazon-ebs" "webapp-ami" {
-  ami_name      = "${var.ami_name}"
+  ami_name      = "${var.ami_name}_${formatdate("YYYY_MM_DD_hh_mm_ss", timestamp())}"
   ami_users     = "${var.ami_users}"
   instance_type = "${var.instance_type}"
   region        = "${var.region}"
