@@ -58,7 +58,7 @@ async def handle_custom_exception(request, exc: CustomException):
     )
 
 
-@app.post("/v1/user")
+@app.post("/v1/users")
 def create_user(user: User, db: Session = Depends(get_db)):
     try:
         c.incr("Create_User")
@@ -200,7 +200,7 @@ async def update_user(user_id: int, data: dict, authorization: str = Header(None
 
 
 
-@app.get("/healthz")
+@app.get("/rishika")
 async def health_check():
     c.incr("Health")
     return response(True, "Health check successful", status.HTTP_200_OK, log_level="info")

@@ -8,7 +8,7 @@ client = TestClient(app=app)
 
 
 def test_create_user():
-    response = client.get('/healthz')
+    response = client.get('/rishika')
     print(response.content)
 
     assert response.status_code == status.HTTP_200_OK
